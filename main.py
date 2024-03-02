@@ -56,10 +56,22 @@ class Game:
 
     def render(self):
         self.screen.fill(background)
+
+        # Vykreslení herních prvků před aplikací masky
         self.player.draw()
         self.door.draw()
         for coin in self.coins:
             pygame.draw.rect(self.screen, (255, 215, 0), (coin[0], coin[1], coin_size, coin_size))
+
+        # Aplikování masky pro zorné pole
+        mask = pygame.Surface((screen_width, screen_height))
+        mask.fill((0, 0, 0))
+        # Použití pozic hráče z třídy Player
+        pygame.draw.circle(mask, (255, 255, 255),
+                           (self.player.x + self.player.size // 2, self.player.y + self.player.size // 2), view_radius)
+        mask.set_colorkey((255, 255, 255))
+        self.screen.blit(mask, (0, 0))
+
         pygame.display.flip()
 
     def quit(self):
@@ -70,6 +82,7 @@ class MusicManager:
     def __init__(self):
         pygame.mixer.music.load(r'assets/music/music.mp3')
         pygame.mixer.music.play(-1)
+        pygame.mixer.music.set_volume(0.5)
         self.stop_sound = pygame.mixer.Sound(r'assets/music/music-stop.mp3')
         self.footstep_sound = pygame.mixer.Sound(r'assets/sounds/footstep.mp3')
         self.pickup_sound = pygame.mixer.Sound(r'assets/sounds/pickup.mp3')
@@ -115,9 +128,11 @@ class JumpscareManager:
         self.jumpscare_sound.play()
         self.screen.blit(self.jumpscare_image, (0, 0))
         pygame.display.flip()
-        pygame.time.wait(2000)  # Jumpscare je zobrazen 2 sekundy
+        pygame.time.wait(3000)  # Jumpscare je zobrazen 2 sekundy
         self.jumpscare_triggered = False
         self.music_stopped_time = None
+        pygame.quit()
+        subprocess.run(["python", "menu.py"])
 
 class Player:
     def __init__(self, screen):
