@@ -7,12 +7,16 @@ from settings import *
 class Game:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((screen_width, screen_height))
+        self.screen = screen
         self.music_manager = MusicManager()
         self.jumpscare_manager = JumpscareManager(self.screen)
         self.player = Player(self.screen)
         self.door = Door(self.screen)
-        self.coins = [self.generate_coin_position() for _ in range(10)]
+        self.coins = [self.generate_coin_position() for _ in range(num_coins)]  # Použijeme num_coins z settings.py
+        self.total_coins = len(self.coins)  # Celkový počet mincí ve hře
+        self.collected_coins = 0  # Počet sebraných mincí
+        self.font = pygame.font.Font(font_path, font_size)
+        self.door_spawned = False
         self.running = True
         self.main_loop()
 
@@ -25,7 +29,11 @@ class Game:
             coin_rect = pygame.Rect(coin[0], coin[1], coin_size, coin_size)
             if player_rect.colliderect(coin_rect):
                 self.coins.remove(coin)  # Odstranění mince po kolizi
+                self.collected_coins += 1
                 self.music_manager.pickup_sound.play()  # Přehrání zvuku sběru
+            if not self.coins:  # Pokud jsou všechny mince sebrány
+                self.door_spawned = True
+                self.door.x, self.door.y = self.door.generate_random_door_position()
 
     def main_loop(self):
         while self.running:
@@ -59,7 +67,8 @@ class Game:
 
         # Vykreslení herních prvků před aplikací masky
         self.player.draw()
-        self.door.draw()
+        if self.door_spawned:
+            self.door.draw()
         for coin in self.coins:
             pygame.draw.rect(self.screen, (255, 215, 0), (coin[0], coin[1], coin_size, coin_size))
 
@@ -67,10 +76,22 @@ class Game:
         mask = pygame.Surface((screen_width, screen_height))
         mask.fill((0, 0, 0))
         # Použití pozic hráče z třídy Player
-        pygame.draw.circle(mask, (255, 255, 255),
-                           (self.player.x + self.player.size // 2, self.player.y + self.player.size // 2), view_radius)
+        pygame.draw.circle(mask, (255, 255, 255),(self.player.x + self.player.size // 2, self.player.y + self.player.size // 2), view_radius)
         mask.set_colorkey((255, 255, 255))
         self.screen.blit(mask, (0, 0))
+        if self.door_spawned:  # Změníme logiku pro vykreslování dveří
+            pygame.draw.rect(self.screen, door_color, (self.door.x, self.door.y, door_width, door_height))
+
+        coins_text = f"{self.collected_coins} / {self.total_coins}"
+        text_surf = self.font.render(coins_text, True, white)
+        self.screen.blit(text_surf, (screen_width - text_surf.get_width() - 10, 10))  # Umístění v pravém horním rohu
+
+        if len(self.coins) == 0:
+            exit_message = "Great, now look for the exit"
+            message_surf = self.font.render(exit_message, True, white)
+            # Centrování zprávy na horní části obrazovky
+            message_rect = message_surf.get_rect(center=(screen_width / 2, 20))
+            self.screen.blit(message_surf, message_rect)
 
         pygame.display.flip()
 

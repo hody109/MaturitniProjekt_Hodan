@@ -2,11 +2,14 @@ import  pygame
 import sys
 import random
 
-
+pygame.init()
 # Nastavení velikosti okna
-screen_width = 1920
-screen_height = 1080
+infoObject = pygame.display.Info()
+screen_width, screen_height = infoObject.current_w, infoObject.current_h
 screen = pygame.display.set_mode((screen_width, screen_height))
+
+font_size = 30
+font_path = r'assets/fonts/CustomFont.ttf'
 
 
 # Unikove dveře
@@ -35,7 +38,7 @@ stop_interval = random.randint(10000, 20000)  # Náhodný čas mezi 10 a 20 seku
 
 # Mince
 coin_size = 15
-num_coins = 5  # Počet mincí ve hře
+num_coins = 10  # Počet mincí ve hře
 coins = [(random.randint(0, screen_width - coin_size), random.randint(0, screen_height - coin_size)) for _ in range(num_coins)]
 
 for _ in range(num_coins):
