@@ -62,15 +62,8 @@ class Game:
         self.jumpscare_manager.update(music_playing, player_moving, current_time)
         self.check_coin_collision()
 
-        if self.door_spawned:
-            player_rect = pygame.Rect(self.player.x, self.player.y, self.player.size, self.player.size)
-            door_rect = pygame.Rect(self.door.x, self.door.y, door_width, door_height)
-            if player_rect.colliderect(door_rect):
-                # Přechod do dalšího levelu
-                self.change_level()
-
     def render(self):
-        self.screen.fill(background0)
+        self.screen.fill(background3)
 
         # Vykreslení herních prvků před aplikací masky
         self.player.draw()
@@ -80,13 +73,12 @@ class Game:
             pygame.draw.rect(self.screen, (255, 215, 0), (coin[0], coin[1], coin_size, coin_size))
 
         # Aplikování masky pro zorné pole
-        """mask = pygame.Surface((screen_width, screen_height))
+        mask = pygame.Surface((screen_width, screen_height))
         mask.fill((0, 0, 0))
         # Použití pozic hráče z třídy Player
         pygame.draw.circle(mask, (255, 255, 255),(self.player.x + self.player.size // 2, self.player.y + self.player.size // 2), view_radius)
         mask.set_colorkey((255, 255, 255))
-        self.screen.blit(mask, (0, 0))"""
-
+        self.screen.blit(mask, (0, 0))
         if self.door_spawned:  # Změníme logiku pro vykreslování dveří
             pygame.draw.rect(self.screen, door_color, (self.door.x, self.door.y, door_width, door_height))
 
@@ -97,16 +89,11 @@ class Game:
         if len(self.coins) == 0:
             exit_message = "Great, now look for the exit"
             message_surf = self.font.render(exit_message, True, white)
+            # Centrování zprávy na horní části obrazovky
             message_rect = message_surf.get_rect(center=(screen_width / 2, 20))
             self.screen.blit(message_surf, message_rect)
-        pygame.display.flip()
 
-    def change_level(self):
-        # Ukončení aktuální Pygame session
-        pygame.quit()
-        # Předpokládejme, že máte připravený skript pro další level, například "level1.py"
-        subprocess.run(["python", "level1.py"])
-        sys.exit()
+        pygame.display.flip()
 
     def quit(self):
         pygame.quit()
@@ -173,7 +160,7 @@ class Player:
         self.screen = screen
         self.x = screen_width // 2
         self.y = screen_height // 2
-        self.speed = 3
+        self.speed = player_speed
         self.size = player_size
         # Přidáme směrové proměnné pro sledování pohybu
         self.move_left = False
@@ -242,10 +229,8 @@ class Door:
             return screen_width - door_width, random.randint(0, screen_height - door_height)
 
     def draw(self):
-        if len(coins) == 0:
+        if len(coins) == 0:  # Předpokládáme, že existuje reference na instanci hry
             pygame.draw.rect(self.screen, door_color, (self.x, self.y, door_width, door_height))
-
-
 
 if __name__ == "__main__":
     Game()

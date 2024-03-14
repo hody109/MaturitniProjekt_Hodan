@@ -15,20 +15,31 @@ font_path = r'assets/fonts/CustomFont.ttf'
 # Unikove dveře
 door_spawned = False
 door_width = 80
-door_height = 20
+door_height = 80
 door_x, door_y = 0, 0  # Initial door position, to be set
 
 # Nastavení barev
 black = (0, 0, 0)
 white = (255, 255, 255)
-background = (51, 51, 0)
+background0 = (51, 51, 0)
+background1 = (153, 0, 0)
+background2 = (102, 51, 0)
+background3 = (51, 51, 0)
 door_color = (96, 96, 96)
+COLOR_MAP = {
+    'green': (0, 255, 0),
+    'blue': (0, 0, 255),
+    'black': (0, 0, 0),
+}
+color_sequence = ['blue', 'black', 'green', 'black', 'green', 'blue']  # Pevně dané pořadí barev
+tv_color = (200, 200, 200)
+tv_position = (screen_width // 2 - 50, 50)  # Televize na horní straně uprostřed
+tv_size = (200, 120)  # Velikost televize
 
 # Pozice a velikost hráče
 player_size = 30
 player_x = screen_width // 2 - player_size // 2
 player_y = screen_height // 2 - player_size // 2
-player_speed = 3
 view_radius = 80  # Radius zorného pole pro hráče
 player_movement = False
 
@@ -40,6 +51,7 @@ stop_interval = random.randint(10000, 20000)  # Náhodný čas mezi 10 a 20 seku
 coin_size = 15
 num_coins = 10  # Počet mincí ve hře
 coins = [(random.randint(0, screen_width - coin_size), random.randint(0, screen_height - coin_size)) for _ in range(num_coins)]
+
 
 for _ in range(num_coins):
     coin_x = random.randint(0, screen_width - coin_size)
