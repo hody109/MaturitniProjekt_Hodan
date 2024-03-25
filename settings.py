@@ -21,8 +21,10 @@ door_x, door_y = 0, 0  # Initial door position, to be set
 # Nastavení barev
 black = (0, 0, 0)
 white = (255, 255, 255)
-background0 = (51, 51, 0)
-background1 = (153, 0, 0)
+background0 = pygame.image.load('assets/maps/map0.png').convert()
+background0 = pygame.transform.scale(background0, (screen_width, screen_height))
+background1 = pygame.image.load('assets/maps/map1.png').convert()
+background1 = pygame.transform.scale(background1, (screen_width, screen_height))
 background2 = (102, 51, 0)
 background3 = (51, 51, 0)
 door_color = (96, 96, 96)
@@ -30,6 +32,9 @@ COLOR_MAP = {
     'green': (0, 255, 0),
     'blue': (0, 0, 255),
     'black': (0, 0, 0),
+    'dark_green': (153, 255, 153),
+    'dark_blue': (0, 0, 102),
+    'yellow': (204, 204, 0)
 }
 color_sequence = ['blue', 'black', 'green', 'black', 'green', 'blue']  # Pevně dané pořadí barev
 tv_color = (200, 200, 200)

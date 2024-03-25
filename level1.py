@@ -8,7 +8,16 @@ from settings import *
 pygame.init()
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.mixer.init()
+pygame.mixer.music.load(r'assets/music/level1.mp3')
+pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0.8)
 balloon_pop_sound = pygame.mixer.Sound(r'assets/sounds/balloon-pop.mp3')
+fuse_blow_sound = pygame.mixer.Sound(r'assets/sounds/eletricity.wav')
+jumpscare_sound = pygame.mixer.Sound(r'assets/sounds/jumpscare.mp3')
+jumpscare_image = pygame.image.load(r'assets/images/jumpscare.png').convert_alpha()
+jumpscare_image = pygame.transform.scale(jumpscare_image, (screen_width, screen_height))
+tv_image = pygame.image.load('assets/images/tv.png').convert_alpha()
+tv_image = pygame.transform.scale(tv_image, (230, 120))
 
 
 class Balloon:
@@ -25,8 +34,12 @@ class TV:
         self.height = 100
         self.x = (screen_width - self.width) // 2
         self.y = 30
+        self.tv_width = 230
+        self.tv_x = (screen_width - self.tv_width) // 2
         self.position = (self.x, self.y)
+        self.tv_position = (self.tv_x, 25)
         self.size = (self.width, self.height)
+        self.image = tv_image
         self.color = 'white'
         self.show_color_time = pygame.time.get_ticks()
 
@@ -35,6 +48,7 @@ class TV:
     def draw(self, screen):
         color = COLOR_MAP.get(self.color, (255, 255, 255))  # Výchozí bílá, pokud barva není definována
         pygame.draw.rect(screen, color, (*self.position, *self.size))
+        screen.blit(self.image, self.tv_position)
 
     def show_color(self, color, current_time):
         self.color = color
@@ -75,11 +89,13 @@ class Game:
     def __init__(self):
         self.screen = screen
         self.player = Player(self.screen)
-        self.balloons = [Balloon(random.choice(['green', 'blue', 'black']), (random.randint(0, screen_width-20), random.randint(0, screen_height-20))) for _ in range(12)]
+        self.balloons = [Balloon(random.choice(['green', 'blue', 'black', 'dark_green', 'dark_blue', 'yellow']), (random.randint(0, screen_width-20), random.randint(0, screen_height-20))) for _ in range(20)]
         self.tv = TV((100, 100), (100, 50))
         self.running = True
         self.color_sequence = ['blue', 'black', 'green', 'black', 'green', 'blue']
         #todo: Obcas se nespawnuji vsechny barvy - zpravit asap
+        self.is_dark = False
+        self.dark_start_time = None
         self.sequence_index = 0
         self.show_next_color(pygame.time.get_ticks())
 
@@ -104,11 +120,15 @@ class Game:
         self.check_balloon_collisions()
 
     def draw(self):
-        self.screen.fill(background1)
-        self.player.draw()
-        for balloon in self.balloons:
-            balloon.draw(self.screen)
-        self.tv.draw(self.screen)
+        if self.is_dark and pygame.time.get_ticks() - self.dark_start_time < 5000:
+            self.screen.fill((0, 0, 0))  # Celá obrazovka černá
+        else:
+            self.screen.blit(background1, (0, 0))
+
+            self.player.draw()
+            for balloon in self.balloons:
+                balloon.draw(self.screen)
+            self.tv.draw(self.screen)
         pygame.display.flip()
 
     def check_balloon_collisions(self):
@@ -133,9 +153,22 @@ class Game:
         self.tv.show_color(next_color, current_time)
 
     def trigger_jumpscare(self):
-        print("Wrong balloon! Game Over.")
-        self.running = False
-        #todo: Logika pro jumpscare
+        # Zkontrolujte, zda už je obrazovka zhasnutá
+        if not self.is_dark:
+            self.is_dark = True
+            pygame.mixer.music.stop()
+            self.dark_start_time = pygame.time.get_ticks()
+            fuse_blow_sound.play()
+        # Po 5 vteřinách zhasnutí zobrazte jumpscare
+        elif pygame.time.get_ticks() - self.dark_start_time >= 2000 and self.is_dark:
+            self.screen.blit(jumpscare_image, (0, 0))
+            jumpscare_sound.play()
+            pygame.display.flip()
+            pygame.time.wait(3000)  # Jumpscare je zobrazen 3 sekundy
+            self.is_dark = False  # Resetujte stav zhasnutí
+            pygame.quit()
+            subprocess.run(["python", "menu.py"])
+            sys.exit()
 
 if __name__ == "__main__":
     game = Game()

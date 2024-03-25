@@ -70,7 +70,7 @@ class Game:
                 self.change_level()
 
     def render(self):
-        self.screen.fill(background0)
+        self.screen.blit(background0, (0, 0))
 
         # Vykreslení herních prvků před aplikací masky
         self.player.draw()
@@ -80,12 +80,12 @@ class Game:
             pygame.draw.rect(self.screen, (255, 215, 0), (coin[0], coin[1], coin_size, coin_size))
 
         # Aplikování masky pro zorné pole
-        """mask = pygame.Surface((screen_width, screen_height))
+        mask = pygame.Surface((screen_width, screen_height))
         mask.fill((0, 0, 0))
         # Použití pozic hráče z třídy Player
         pygame.draw.circle(mask, (255, 255, 255),(self.player.x + self.player.size // 2, self.player.y + self.player.size // 2), view_radius)
         mask.set_colorkey((255, 255, 255))
-        self.screen.blit(mask, (0, 0))"""
+        self.screen.blit(mask, (0, 0))
 
         if self.door_spawned:  # Změníme logiku pro vykreslování dveří
             pygame.draw.rect(self.screen, door_color, (self.door.x, self.door.y, door_width, door_height))
@@ -159,6 +159,7 @@ class JumpscareManager:
             self.trigger_jumpscare()
 
     def trigger_jumpscare(self):
+        self.screen.fill((0, 0, 0))
         self.jumpscare_sound.play()
         self.screen.blit(self.jumpscare_image, (0, 0))
         pygame.display.flip()
