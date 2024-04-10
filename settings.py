@@ -3,9 +3,10 @@ import sys
 import random
 
 pygame.init()
+
 # Nastavení velikosti okna
 infoObject = pygame.display.Info()
-screen_width, screen_height = infoObject.current_w, infoObject.current_h
+screen_width, screen_height = 1600, 900
 screen = pygame.display.set_mode((screen_width, screen_height))
 
 font_size = 30
@@ -42,6 +43,8 @@ tv_position = (screen_width // 2 - 50, 50)  # Televize na horní straně uprost�
 tv_size = (200, 120)  # Velikost televize
 
 # Pozice a velikost hráče
+player_speed = 3
+chased_player_speed = 3.5
 player_size = 30
 player_x = screen_width // 2 - player_size // 2
 player_y = screen_height // 2 - player_size // 2

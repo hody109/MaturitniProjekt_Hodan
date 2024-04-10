@@ -3,7 +3,8 @@ import sys
 import random
 import subprocess
 from settings import *
-
+from main import Player
+from main import NPC
 
 pygame.init()
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -18,7 +19,6 @@ jumpscare_image = pygame.image.load(r'assets/images/jumpscare.png').convert_alph
 jumpscare_image = pygame.transform.scale(jumpscare_image, (screen_width, screen_height))
 tv_image = pygame.image.load('assets/images/tv.png').convert_alpha()
 tv_image = pygame.transform.scale(tv_image, (230, 120))
-
 
 class Balloon:
     def __init__(self, color, position):
@@ -59,7 +59,7 @@ class Player:
         self.screen = screen
         self.x = screen_width // 2
         self.y = screen_height // 2
-        self.speed = 0.3
+        self.speed = 0.2
         self.rect = pygame.Rect(self.x, self.y, 50, 50)
         self.size = player_size
 
@@ -84,12 +84,16 @@ class Player:
         pygame.draw.rect(self.screen, white, (self.rect.x, self.rect.y, self.size, self.size))
 
 
-
-class Game:
+class level1:
     def __init__(self):
         self.screen = screen
         self.player = Player(self.screen)
-        self.balloons = [Balloon(random.choice(['green', 'blue', 'black', 'dark_green', 'dark_blue', 'yellow']), (random.randint(0, screen_width-20), random.randint(0, screen_height-20))) for _ in range(20)]
+        balloon_size = 20  # Předpokládáme, že velikost balonku je 20x20 pixelů
+        self.balloons = [
+            Balloon(random.choice(['green', 'blue', 'black', 'dark_green', 'dark_blue', 'yellow']),
+                    (random.randint(0, screen_width - balloon_size), random.randint(0, screen_height - balloon_size)))
+            for _ in range(20)
+        ]
         self.tv = TV((100, 100), (100, 50))
         self.running = True
         self.color_sequence = ['blue', 'black', 'green', 'black', 'green', 'blue']
@@ -104,10 +108,6 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-
-            keys = pygame.key.get_pressed()
-            self.player.update(keys)
-
             self.update()
             self.draw()
 
@@ -124,12 +124,16 @@ class Game:
             self.screen.fill((0, 0, 0))  # Celá obrazovka černá
         else:
             self.screen.blit(background1, (0, 0))
-
             self.player.draw()
             for balloon in self.balloons:
                 balloon.draw(self.screen)
             self.tv.draw(self.screen)
         pygame.display.flip()
+
+    def change_level(self):
+        pygame.quit()
+        subprocess.run(["python", "level2.py"])
+        sys.exit()
 
     def check_balloon_collisions(self):
         player_rect = self.player.rect
@@ -142,11 +146,16 @@ class Game:
                     if self.sequence_index < len(self.color_sequence):
                         self.show_next_color(pygame.time.get_ticks())
                     else:
-                        print("You've matched all the colors!")
-                        self.running = False
+                        self.is_dark = True
+                        self.dark_start_time = pygame.time.get_ticks()
+                        pygame.mixer.music.stop()
+                        fuse_blow_sound.play()
                 else:
                     self.trigger_jumpscare()
                 break
+        current_time = pygame.time.get_ticks()
+        if self.is_dark and current_time - self.dark_start_time >= 5000:
+            self.change_level()
 
     def show_next_color(self, current_time):
         next_color = self.color_sequence[self.sequence_index]
@@ -171,5 +180,5 @@ class Game:
             sys.exit()
 
 if __name__ == "__main__":
-    game = Game()
+    game = level1()
     game.main_loop()

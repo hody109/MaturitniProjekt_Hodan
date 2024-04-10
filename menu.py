@@ -123,7 +123,7 @@ class MainMenu:
             pygame.mixer.music.stop()
             self.start_background_music()
             pygame.quit()
-            subprocess.run(["python", "main.py"])
+            subprocess.run(["python", "level0.py"])
             sys.exit()
         elif self.menu_items[index] == 'Quit':
             pygame.quit()
