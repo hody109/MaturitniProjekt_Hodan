@@ -1,10 +1,5 @@
-import pygame
-import sys
-import random
 import subprocess
 from settings import *
-from main import Player
-from main import NPC
 
 pygame.init()
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -23,36 +18,15 @@ tv_image = pygame.transform.scale(tv_image, (230, 120))
 class Balloon:
     def __init__(self, color, position):
         self.color = color
-        self.rect = pygame.Rect(position[0], position[1], 20, 20)
+        self.image = pygame.image.load(f'assets/tiles/{color}_balloon.png').convert_alpha()
+        self.image = pygame.transform.scale(self.image, (60, 180))  # Velikost balónku
+        self.rect = self.image.get_rect(topleft=position)
 
     def draw(self, screen):
-        pygame.draw.rect(screen, COLOR_MAP[self.color], self.rect)
-
-class TV:
-    def __init__(self, position, size):
-        self.width = 200
-        self.height = 100
-        self.x = (screen_width - self.width) // 2
-        self.y = 30
-        self.tv_width = 230
-        self.tv_x = (screen_width - self.tv_width) // 2
-        self.position = (self.x, self.y)
-        self.tv_position = (self.tv_x, 25)
-        self.size = (self.width, self.height)
-        self.image = tv_image
-        self.color = 'white'
-        self.show_color_time = pygame.time.get_ticks()
+        # Vykreslení obrázku místo barevného čtverce
+        screen.blit(self.image, self.rect)
 
 
-
-    def draw(self, screen):
-        color = COLOR_MAP.get(self.color, (255, 255, 255))  # Výchozí bílá, pokud barva není definována
-        pygame.draw.rect(screen, color, (*self.position, *self.size))
-        screen.blit(self.image, self.tv_position)
-
-    def show_color(self, color, current_time):
-        self.color = color
-        self.show_color_time = current_time
 
 class Player:
     def __init__(self, screen):
@@ -62,6 +36,8 @@ class Player:
         self.speed = 0.2
         self.rect = pygame.Rect(self.x, self.y, 50, 50)
         self.size = player_size
+        self.player_img = pygame.image.load(r'assets/tiles/player.png').convert_alpha()
+        self.player_img = pygame.transform.scale(self.player_img, (60, 30))  # Velikost balónku
 
     def update(self, keys):
         if keys[pygame.K_LEFT]:
@@ -81,19 +57,15 @@ class Player:
         self.rect.y = max(0, min(self.rect.y, screen_height - self.rect.height))
 
     def draw(self):
-        pygame.draw.rect(self.screen, white, (self.rect.x, self.rect.y, self.size, self.size))
+        screen.blit(self.player_img, self.rect)
 
 
 class level1:
     def __init__(self):
         self.screen = screen
         self.player = Player(self.screen)
-        balloon_size = 20  # Předpokládáme, že velikost balonku je 20x20 pixelů
-        self.balloons = [
-            Balloon(random.choice(['green', 'blue', 'black', 'dark_green', 'dark_blue', 'yellow']),
-                    (random.randint(0, screen_width - balloon_size), random.randint(0, screen_height - balloon_size)))
-            for _ in range(20)
-        ]
+        self.player_spawn_area = pygame.Rect(self.player.x, self.player.y, self.player.size, self.player.size)
+        self.balloons = self.generate_balloon_positions()
         self.tv = TV((100, 100), (100, 50))
         self.running = True
         self.color_sequence = ['blue', 'black', 'green', 'black', 'green', 'blue']
@@ -102,6 +74,22 @@ class level1:
         self.dark_start_time = None
         self.sequence_index = 0
         self.show_next_color(pygame.time.get_ticks())
+
+    def generate_balloon_positions(self):
+        positions = set()
+        while len(positions) < 16:  # Předpokládejme, že chceme 20 balónků
+            x = random.randint(0, screen_width - 30)  # 30 je šířka balónku
+            y = random.randint(0, screen_height - 80)  # 80 je výška balónku
+            balloon_rect = pygame.Rect(x, y, 30, 80)
+
+            # Zkontrolujte, zda se pozice balónku nepřekrývá s počáteční pozicí hráče
+            # a že balón není na stejném místě jako jiný balón
+            if not self.player_spawn_area.colliderect(balloon_rect) and (x, y) not in positions:
+                positions.add((x, y))
+
+        # Vytvoří seznam balónků s unikátními pozicemi
+        return [Balloon(random.choice(['green', 'blue', 'black', 'dark-green', 'light-blue', 'yellow']), pos) for pos in
+                positions]
 
     def main_loop(self):
         while self.running:
@@ -124,10 +112,10 @@ class level1:
             self.screen.fill((0, 0, 0))  # Celá obrazovka černá
         else:
             self.screen.blit(background1, (0, 0))
+            self.tv.draw(self.screen)
             self.player.draw()
             for balloon in self.balloons:
                 balloon.draw(self.screen)
-            self.tv.draw(self.screen)
         pygame.display.flip()
 
     def change_level(self):
@@ -178,6 +166,31 @@ class level1:
             pygame.quit()
             subprocess.run(["python", "menu.py"])
             sys.exit()
+class TV:
+    def __init__(self, position, size):
+        self.width = 200
+        self.height = 100
+        self.x = (screen_width - self.width) // 2
+        self.y = 30
+        self.tv_width = 230
+        self.tv_x = (screen_width - self.tv_width) // 2
+        self.position = (self.x, self.y)
+        self.tv_position = (self.tv_x, 25)
+        self.size = (self.width, self.height)
+        self.image = tv_image
+        self.color = 'white'
+        self.show_color_time = pygame.time.get_ticks()
+
+
+
+    def draw(self, screen):
+        color = COLOR_MAP.get(self.color, (255, 255, 255))  # Výchozí bílá, pokud barva není definována
+        pygame.draw.rect(screen, color, (*self.position, *self.size))
+        screen.blit(self.image, self.tv_position)
+
+    def show_color(self, color, current_time):
+        self.color = color
+        self.show_color_time = current_time
 
 if __name__ == "__main__":
     game = level1()

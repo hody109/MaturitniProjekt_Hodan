@@ -1,7 +1,6 @@
 from menu import MainMenu
 import pygame
 from settings import *
-from level2 import  JumpscareManager
 class Player:
     def __init__(self, screen):
         self.screen = screen
@@ -14,19 +13,29 @@ class Player:
         self.move_up = False
         self.move_down = False
         self.rect = pygame.Rect(self.x, self.y, self.size, self.size)
-        # Klávesy nejsou v této verzi přímo používány, ale mohou být ponechány pro další použití
         self.keys = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN]
+        self.original_player_img = pygame.image.load(r'assets/tiles/player.png').convert_alpha()
+        self.original_player_img = pygame.transform.scale(self.original_player_img, (60, 30))  # Velikost balónku
+        self.player_img = self.original_player_img
+        self.left_player_img = pygame.image.load(r'assets/tiles/player_left.png').convert_alpha()
+        self.left_player_img = pygame.transform.scale(self.left_player_img, (30, 60))  # Velikost balónku
+        self.right_player_img = pygame.image.load(r'assets/tiles/player_right.png').convert_alpha()
+        self.right_player_img = pygame.transform.scale(self.right_player_img, (30, 60))  # Velikost balónku
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 self.move_left = True
+                self.player_img = self.left_player_img
             elif event.key == pygame.K_RIGHT:
                 self.move_right = True
+                self.player_img = self.right_player_img
             elif event.key == pygame.K_UP:
                 self.move_up = True
+                self.player_img = pygame.transform.flip(self.original_player_img, False, True)
             elif event.key == pygame.K_DOWN:
                 self.move_down = True
+                self.player_img = self.original_player_img
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 self.move_left = False
@@ -52,12 +61,13 @@ class Player:
 
         self.rect.x = int(self.x)
         self.rect.y = int(self.y)
+
         # Omezení pohybu hráče na herní plochu
         self.rect.x = max(0, min(self.rect.x, screen_width - self.size))
         self.rect.y = max(0, min(self.rect.y, screen_height - self.size))
 
     def draw(self):
-        pygame.draw.rect(self.screen, white, (self.rect.x, self.rect.y, self.size, self.size))
+        self.screen.blit(self.player_img, (self.rect.x, self.rect.y))
 
 
 class NPC:
@@ -67,7 +77,7 @@ class NPC:
         self.x = screen_width // 2
         self.y = screen_height // 2
         self.speed = 2
-        self.chase_speed = 2.6
+        self.chase_speed = 2.5
         self.size = 30
         self.vision_radius = 150
         self.rect = pygame.Rect(self.x, self.y, self.size, self.size)

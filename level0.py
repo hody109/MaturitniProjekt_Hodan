@@ -59,7 +59,6 @@ class level0:
 
         # Zde předáváme klávesy do metody update()
         self.player.update()  # Předáváme aktuální stavy kláves
-
         self.music_manager.update()
         self.jumpscare_manager.update(music_playing, player_moving, current_time)
         self.check_coin_collision()
@@ -82,14 +81,17 @@ class level0:
             pygame.draw.rect(self.screen, (255, 215, 0), (coin[0], coin[1], coin_size, coin_size))
 
         # Aplikování masky pro zorné pole
-        """mask = pygame.Surface((screen_width, screen_height))
+        mask = pygame.Surface((screen_width, screen_height))
         mask.fill((0, 0, 0))
-        # Použití pozic hráče z třídy Player
-        pygame.draw.circle(mask, (255, 255, 255),(self.player.x + self.player.size // 2, self.player.y + self.player.size // 2), view_radius)
+
+        # Výpočet středu hráče předpokládá, že self.player.size je výška a šířka je pevně nastavena na 60 pixelů
+        player_center_x = self.player.x + 60 // 2  # Půlka šířky obrázku hráče
+        player_center_y = self.player.y + 30 // 2  # Půlka výšky obrázku hráče, pokud player_size = 30
+
+        # Vykreslení kruhu pro zorné pole s použitím upravených středových bodů
+        pygame.draw.circle(mask, (255, 255, 255), (player_center_x, player_center_y), view_radius)
         mask.set_colorkey((255, 255, 255))
-        self.screen.blit(mask, (0, 0))"""
-
-
+        self.screen.blit(mask, (0, 0))
 
 
         coins_text = f"{self.collected_coins} / {self.total_coins}"

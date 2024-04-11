@@ -48,7 +48,7 @@ chased_player_speed = 3.5
 player_size = 30
 player_x = screen_width // 2 - player_size // 2
 player_y = screen_height // 2 - player_size // 2
-view_radius = 80  # Radius zorného pole pro hráče
+view_radius = 90  # Radius zorného pole pro hráče
 player_movement = False
 
 # Nastavení počátečního času a intervalu pro zastavení hudby
