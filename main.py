@@ -14,28 +14,27 @@ class Player:
         self.move_down = False
         self.rect = pygame.Rect(self.x, self.y, self.size, self.size)
         self.keys = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN]
-        self.original_player_img = pygame.image.load(r'assets/tiles/player.png').convert_alpha()
-        self.original_player_img = pygame.transform.scale(self.original_player_img, (60, 30))  # Velikost balónku
-        self.player_img = self.original_player_img
-        self.left_player_img = pygame.image.load(r'assets/tiles/player_left.png').convert_alpha()
-        self.left_player_img = pygame.transform.scale(self.left_player_img, (30, 60))  # Velikost balónku
-        self.right_player_img = pygame.image.load(r'assets/tiles/player_right.png').convert_alpha()
-        self.right_player_img = pygame.transform.scale(self.right_player_img, (30, 60))  # Velikost balónku
+        self.player_img = pygame.image.load(r'assets/tiles/player.png').convert_alpha()
+        self.player_img = pygame.transform.scale(self.player_img, (60, 30))  # Velikost balónku
+        self.player_left = pygame.transform.rotate(self.player_img, -90)
+        self.player_right = pygame.transform.rotate(self.player_img, 90)
+        self.player_up =pygame.transform.rotate(self.player_img, 180)
+        self.player_down = self.player_img
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 self.move_left = True
-                self.player_img = self.left_player_img
+                self.player_img = self.player_left
             elif event.key == pygame.K_RIGHT:
                 self.move_right = True
-                self.player_img = self.right_player_img
+                self.player_img = self.player_right
             elif event.key == pygame.K_UP:
                 self.move_up = True
-                self.player_img = pygame.transform.flip(self.original_player_img, False, True)
+                self.player_img = self.player_up
             elif event.key == pygame.K_DOWN:
                 self.move_down = True
-                self.player_img = self.original_player_img
+                self.player_img = self.player_down
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 self.move_left = False
