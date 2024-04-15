@@ -57,7 +57,7 @@ stop_interval = random.randint(10000, 20000)  # Náhodný čas mezi 10 a 20 seku
 
 # Mince
 coin_size = 15
-num_coins = 10  # Počet mincí ve hře
+num_coins = 7  # Počet mincí ve hře
 coins = [(random.randint(0, screen_width - coin_size), random.randint(0, screen_height - coin_size)) for _ in range(num_coins)]
 
 

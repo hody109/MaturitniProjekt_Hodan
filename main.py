@@ -1,3 +1,5 @@
+import subprocess
+
 from menu import MainMenu
 import pygame
 from settings import *
@@ -20,6 +22,7 @@ class Player:
         self.player_right = pygame.transform.rotate(self.player_img, 90)
         self.player_up =pygame.transform.rotate(self.player_img, 180)
         self.player_down = self.player_img
+        self.interact = False  # Přidáno pro sledování stisku klávesy E
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -35,6 +38,8 @@ class Player:
             elif event.key == pygame.K_DOWN:
                 self.move_down = True
                 self.player_img = self.player_down
+            elif event.key == pygame.K_e:
+                self.interact = True  # Hráč stiskl klávesu E pro interakci
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 self.move_left = False
@@ -44,6 +49,8 @@ class Player:
                 self.move_up = False
             elif event.key == pygame.K_DOWN:
                 self.move_down = False
+            elif event.key == pygame.K_e:
+                self.interact = False  # Hráč uvolnil klávesu E
 
     def is_moving(self):
         return self.move_left or self.move_right or self.move_up or self.move_down
@@ -86,6 +93,10 @@ class NPC:
         self.move_distance_limit = random.randint(50, 150)  # Náhodně zvolená vzdálenost pro změnu směru
         self.chase_sound = pygame.mixer.Sound(r'assets/sounds/skin_stealer.mp3')
         self.is_chasing = False
+
+    def expand_vision(self, new_radius):
+        self.vision_radius = new_radius
+
 
     def move_randomly(self):
         if self.distance_moved >= self.move_distance_limit:
@@ -141,6 +152,33 @@ class NPC:
         pygame.draw.rect(self.screen, self.color, self.rect)
         # Vykreslení zorného pole pro vizuální debug
         pygame.draw.circle(self.screen, (0, 255, 0), (self.x + self.size // 2, self.y + self.size // 2), self.vision_radius, 1)
+
+class JumpscareManager:
+    def __init__(self, screen):
+        self.screen = screen
+        self.jumpscare_sound = pygame.mixer.Sound(r'assets/sounds/jumpscare.mp3')
+        self.jumpscare_image = pygame.image.load(r'assets/images/jumpscare.png').convert_alpha()
+        self.jumpscare_image = pygame.transform.scale(self.jumpscare_image, (screen_width, screen_height))
+        self.jumpscare_triggered = False
+        self.music_stopped_time = None
+
+    def update(self, music_playing, current_time):
+        # Zaznamená čas, kdy hudba skončila
+        if not music_playing and self.music_stopped_time is None:
+            self.music_stopped_time = current_time
+        elif music_playing:
+            self.music_stopped_time = None  # Reset, pokud hudba znovu začne hrát
+
+    def trigger_jumpscare(self):
+        self.jumpscare_sound.play()
+        self.screen.blit(self.jumpscare_image, (0, 0))
+        pygame.display.flip()
+        pygame.time.wait(3000)  # Jumpscare je zobrazen 3 sekundy
+        pygame.quit()  # Ukončení Pygame
+
+        # Vrátit se do hlavního menu
+        subprocess.run(["python", "main.py"])
+        sys.exit()  # Ukončení skriptu
 
 
 
