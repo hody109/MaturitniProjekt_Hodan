@@ -114,11 +114,6 @@ class level0:
         pygame.quit()
         sys.exit()
 
-class Game:
-    def __init__(self):
-        pygame.init()
-        self.screen = screen
-
 class MusicManager:
     def __init__(self):
         pygame.mixer.music.load(r'assets/music/music.mp3')

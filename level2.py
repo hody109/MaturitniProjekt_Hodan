@@ -29,7 +29,7 @@ class Computer:
     def check_answer(self, answer):
         if answer.lower() == "balloon":
             pygame.quit()
-            subprocess.run(["python", "level3.py"])
+            subprocess.run(["python", "level3_end.py"])
             sys.exit()
 
 
@@ -152,7 +152,7 @@ class level2:
 
     def change_level(self):
         pygame.quit()
-        subprocess.run(["python", "level3.py"])
+        subprocess.run(["python", "level3_end.py"])
         sys.exit()
 
     def quit(self):

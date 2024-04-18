@@ -1,5 +1,6 @@
 import subprocess
 from settings import *
+from main import Player
 
 pygame.init()
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -25,39 +26,6 @@ class Balloon:
     def draw(self, screen):
         # Vykreslení obrázku místo barevného čtverce
         screen.blit(self.image, self.rect)
-
-
-
-class Player:
-    def __init__(self, screen):
-        self.screen = screen
-        self.x = screen_width // 2
-        self.y = screen_height // 2
-        self.speed = 0.2
-        self.rect = pygame.Rect(self.x, self.y, 50, 50)
-        self.size = player_size
-        self.player_img = pygame.image.load(r'assets/tiles/player.png').convert_alpha()
-        self.player_img = pygame.transform.scale(self.player_img, (60, 30))  # Velikost balónku
-
-    def update(self, keys):
-        if keys[pygame.K_LEFT]:
-            self.x -= self.speed
-        if keys[pygame.K_RIGHT]:
-            self.x += self.speed
-        if keys[pygame.K_UP]:
-            self.y -= self.speed
-        if keys[pygame.K_DOWN]:
-            self.y += self.speed
-
-        self.rect.x = int(self.x)
-        self.rect.y = int(self.y)
-
-            # Omezení pohybu hráče na herní plochu
-        self.rect.x = max(0, min(self.rect.x, screen_width - self.rect.width))
-        self.rect.y = max(0, min(self.rect.y, screen_height - self.rect.height))
-
-    def draw(self):
-        screen.blit(self.player_img, self.rect)
 
 
 class level1:
