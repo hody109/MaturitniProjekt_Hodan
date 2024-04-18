@@ -1,165 +1,149 @@
-import subprocess
 from settings import *
 from main import Player
-
-pygame.init()
-screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.mixer.init()
-pygame.mixer.music.load(r'assets/music/level1.mp3')
-pygame.mixer.music.play(-1)
-pygame.mixer.music.set_volume(0.8)
-balloon_pop_sound = pygame.mixer.Sound(r'assets/sounds/balloon-pop.mp3')
-fuse_blow_sound = pygame.mixer.Sound(r'assets/sounds/eletricity.wav')
-jumpscare_sound = pygame.mixer.Sound(r'assets/sounds/jumpscare.mp3')
-jumpscare_image = pygame.image.load(r'assets/images/jumpscare.png').convert_alpha()
-jumpscare_image = pygame.transform.scale(jumpscare_image, (screen_width, screen_height))
-tv_image = pygame.image.load('assets/images/tv.png').convert_alpha()
-tv_image = pygame.transform.scale(tv_image, (230, 120))
-
-class Balloon:
-    def __init__(self, color, position):
-        self.color = color
-        self.image = pygame.image.load(f'assets/tiles/{color}_balloon.png').convert_alpha()
-        self.image = pygame.transform.scale(self.image, (60, 180))  # Velikost balónku
-        self.rect = self.image.get_rect(topleft=position)
-
-    def draw(self, screen):
-        # Vykreslení obrázku místo barevného čtverce
-        screen.blit(self.image, self.rect)
-
+import os
 
 class level1:
     def __init__(self):
+        os.environ['SDL_VIDEO_CENTERED'] = '1'  # Center the pygame window on the screen
+        pygame.init()
         self.screen = screen
+        self.music_manager = MusicManager()
+        self.jumpscare_manager = JumpscareManager(self.screen)
         self.player = Player(self.screen)
-        self.player_spawn_area = pygame.Rect(self.player.x, self.player.y, self.player.size, self.player.size)
-        self.balloons = self.generate_balloon_positions()
-        self.tv = TV((100, 100), (100, 50))
+        self.balloons = self.spawn_balloons()
+        self.color_sequence = ['blue', 'black', 'green', 'black', 'blue', 'green']
+        self.current_color_index = 0
+        self.balloons_popped = 0
+        self.television = Television(self.screen, self.color_sequence[self.current_color_index])
+        self.balloon_pop_sound = pygame.mixer.Sound(r'assets/sounds/balloon-pop.mp3')
+        self.electricity = pygame.mixer.Sound(r'assets/sounds/eletricity.wav')
         self.running = True
-        self.color_sequence = ['blue', 'black', 'green', 'black', 'green', 'blue']
-        #todo: Obcas se nespawnuji vsechny barvy - zpravit asap
-        self.is_dark = False
-        self.dark_start_time = None
-        self.sequence_index = 0
-        self.show_next_color(pygame.time.get_ticks())
-
-    def generate_balloon_positions(self):
-        positions = set()
-        while len(positions) < 16:  # Předpokládejme, že chceme 20 balónků
-            x = random.randint(0, screen_width - 30)  # 30 je šířka balónku
-            y = random.randint(0, screen_height - 80)  # 80 je výška balónku
-            balloon_rect = pygame.Rect(x, y, 30, 80)
-
-            # Zkontrolujte, zda se pozice balónku nepřekrývá s počáteční pozicí hráče
-            # a že balón není na stejném místě jako jiný balón
-            if not self.player_spawn_area.colliderect(balloon_rect) and (x, y) not in positions:
-                positions.add((x, y))
-
-        # Vytvoří seznam balónků s unikátními pozicemi
-        return [Balloon(random.choice(['green', 'blue', 'black', 'dark-green', 'light-blue', 'yellow']), pos) for pos in
-                positions]
+        self.main_loop()
 
     def main_loop(self):
         while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
+            self.handle_events()
             self.update()
-            self.draw()
+            self.render()
+            pygame.time.Clock().tick(60)
+        self.quit()
 
-        pygame.quit()
-        sys.exit()
-
-    def update(self):
-        keys = pygame.key.get_pressed()
-        self.player.update(keys)
-        self.check_balloon_collisions()
-
-    def draw(self):
-        if self.is_dark and pygame.time.get_ticks() - self.dark_start_time < 5000:
-            self.screen.fill((0, 0, 0))  # Celá obrazovka černá
-        else:
-            self.screen.blit(background1, (0, 0))
-            self.tv.draw(self.screen)
-            self.player.draw()
-            for balloon in self.balloons:
-                balloon.draw(self.screen)
-        pygame.display.flip()
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    self.pop_balloon()
+            self.player.handle_event(event)
 
     def change_level(self):
         pygame.quit()
         subprocess.run(["python", "level2.py"])
+
+    def pop_balloon(self):
+        player_rect = pygame.Rect(self.player.x, self.player.y, self.player.size, self.player.size)
+        for balloon in self.balloons[:]:
+            if player_rect.colliderect(balloon.rect):
+                if balloon.color == self.color_sequence[self.current_color_index]:
+                    self.balloons.remove(balloon)
+                    self.balloon_pop_sound.play()
+                    self.balloons_popped += 1
+                    self.current_color_index = (self.current_color_index + 1) % len(self.color_sequence)
+                    self.television.update(self.color_sequence[self.current_color_index])
+                    if self.balloons_popped == len(self.color_sequence):
+                        self.electricity.play()
+                        pygame.mixer.music.stop()
+                        self.screen.fill((0, 0, 0))
+                        pygame.display.flip()
+                        pygame.time.wait(1000)
+                        self.change_level()
+                else:
+                    self.electricity.play()
+                    pygame.mixer.music.stop()
+                    self.screen.fill((0, 0, 0))
+                    pygame.display.flip()
+                    pygame.time.wait(1000)
+                    self.jumpscare_manager.trigger_jumpscare()
+    def spawn_balloons(self):
+        colors = ['blue', 'green', 'black', 'dark-green', 'yellow', 'light-blue']
+        return [Balloon(self.screen, random.choice(colors)) for _ in range(20)]
+
+
+    def update(self):
+        self.player.update()
+
+    def render(self):
+        self.screen.blit(background1, (0, 0))
+        self.television.draw()
+
+        self.player.draw()
+        for balloon in self.balloons:
+            balloon.draw()
+        pygame.display.flip()
+
+    def quit(self):
+        pygame.quit()
         sys.exit()
 
-    def check_balloon_collisions(self):
-        player_rect = self.player.rect
-        for balloon in self.balloons:
-            if player_rect.colliderect(balloon.rect):
-                if balloon.color == self.color_sequence[self.sequence_index]:
-                    self.balloons.remove(balloon)
-                    balloon_pop_sound.play()
-                    self.sequence_index += 1
-                    if self.sequence_index < len(self.color_sequence):
-                        self.show_next_color(pygame.time.get_ticks())
-                    else:
-                        self.is_dark = True
-                        self.dark_start_time = pygame.time.get_ticks()
-                        pygame.mixer.music.stop()
-                        fuse_blow_sound.play()
-                else:
-                    self.trigger_jumpscare()
-                break
-        current_time = pygame.time.get_ticks()
-        if self.is_dark and current_time - self.dark_start_time >= 5000:
-            self.change_level()
+    def quit(self):
+        pygame.quit()
+        sys.exit()
 
-    def show_next_color(self, current_time):
-        next_color = self.color_sequence[self.sequence_index]
-        self.tv.show_color(next_color, current_time)
+class Balloon:
+    def __init__(self, screen, color):
+        self.screen = screen
+        self.color = color
+        original_image = pygame.image.load(f'assets/tiles/{color}_balloon.png').convert_alpha()
+        self.image = pygame.transform.scale(original_image, (int(original_image.get_width() * 2), int(original_image.get_height() * 2)))
+        self.rect = self.image.get_rect(center=(random.randint(self.image.get_width() // 2, screen_width - self.image.get_width() // 2),
+                                               random.randint(self.image.get_height() // 2, screen_height - self.image.get_height() // 2)))
 
-    def trigger_jumpscare(self):
-        # Zkontrolujte, zda už je obrazovka zhasnutá
-        if not self.is_dark:
-            self.is_dark = True
-            pygame.mixer.music.stop()
-            self.dark_start_time = pygame.time.get_ticks()
-            fuse_blow_sound.play()
-        # Po 5 vteřinách zhasnutí zobrazte jumpscare
-        elif pygame.time.get_ticks() - self.dark_start_time >= 2000 and self.is_dark:
-            self.screen.blit(jumpscare_image, (0, 0))
-            jumpscare_sound.play()
-            pygame.display.flip()
-            pygame.time.wait(3000)  # Jumpscare je zobrazen 3 sekundy
-            self.is_dark = False  # Resetujte stav zhasnutí
-            pygame.quit()
-            subprocess.run(["python", "menu.py"])
-            sys.exit()
-class TV:
-    def __init__(self, position, size):
+    def draw(self):
+        self.screen.blit(self.image, self.rect)
+
+class Television:
+    def __init__(self, screen, initial_color):
+        self.screen = screen
+        self.color = initial_color
         self.width = 200
         self.height = 100
-        self.x = (screen_width - self.width) // 2
-        self.y = 30
-        self.tv_width = 230
-        self.tv_x = (screen_width - self.tv_width) // 2
-        self.position = (self.x, self.y)
-        self.tv_position = (self.tv_x, 25)
-        self.size = (self.width, self.height)
-        self.image = tv_image
-        self.color = 'white'
-        self.show_color_time = pygame.time.get_ticks()
+        self.rect = pygame.Rect(screen_width // 2 - self.width // 2, 10, self.width, self.height)
+
+    def update(self, new_color):
+        self.color = new_color
+
+    def draw(self):
+        pygame.draw.rect(self.screen, pygame.Color(self.color), self.rect)
+class MusicManager:
+    def __init__(self):
+        pygame.mixer.music.load(r'assets/music/level1.mp3')
+        pygame.mixer.music.play(-1)
+        pygame.mixer.music.set_volume(0.5)
+
+        self.door_spawn = pygame.mixer.Sound(r'assets/sounds/door_spawn.mp3')
+        self.footstep_sound = pygame.mixer.Sound(r'assets/sounds/footstep.mp3')
+        self.music_playing = True
 
 
+class JumpscareManager:
+    def __init__(self, screen):
+        self.screen = screen
+        self.jumpscare_sound = pygame.mixer.Sound(r'assets/sounds/jumpscare.mp3')
+        self.jumpscare_image = pygame.image.load(r'assets/images/jumpscare.png').convert_alpha()
+        self.jumpscare_image = pygame.transform.scale(self.jumpscare_image, (screen_width, screen_height))
+        self.jumpscare_triggered = False
 
-    def draw(self, screen):
-        color = COLOR_MAP.get(self.color, (255, 255, 255))  # Výchozí bílá, pokud barva není definována
-        pygame.draw.rect(screen, color, (*self.position, *self.size))
-        screen.blit(self.image, self.tv_position)
-
-    def show_color(self, color, current_time):
-        self.color = color
-        self.show_color_time = current_time
+    def trigger_jumpscare(self):
+        self.screen.fill((0, 0, 0))
+        self.jumpscare_sound.play()
+        self.screen.blit(self.jumpscare_image, (0, 0))
+        pygame.display.flip()
+        pygame.time.wait(3000)
+        self.jumpscare_triggered = False
+        self.music_stopped_time = None
+        pygame.quit()
+        subprocess.run(["python", "menu.py"])
 
 if __name__ == "__main__":
-    game = level1()
-    game.main_loop()
+    level1()

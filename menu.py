@@ -1,19 +1,21 @@
 import pygame
 import sys
 import subprocess
+import os
 
 class MainMenu:
     def __init__(self):
+        os.environ['SDL_VIDEO_CENTERED'] = '1'  # Center the pygame window on the screen
         pygame.init()
         self.screen_width, self.screen_height = 800, 450
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Escape the Mazerooms - Main Menu")
         self.background_image = pygame.image.load(r'assets/images/background_menu.jpg').convert()
         self.background_image = pygame.transform.scale(self.background_image, (self.screen_width, self.screen_height))
-        self.font_path = r'assets/fonts/CustomFont.ttf'  # Upravte podle vaší cesty k fontu
-        self.font_size = 30
+        self.font_path = r'assets/fonts/ScreamAgain.ttf'
+        self.font_size = 15
         self.font = pygame.font.Font(self.font_path, self.font_size)
-        self.title_font_size = 72
+        self.title_font_size = 40
         self.title_font = pygame.font.Font(self.font_path, self.title_font_size)
         self.menu_items = ['Play', 'Tutorial', 'Magazine','Quit']
         self.tutorial_image = pygame.image.load(r'assets/images/tutorial.jpg').convert()
@@ -27,7 +29,6 @@ class MainMenu:
         self.state = 'menu'
 
     def return_to_menu(self):
-        """Nastaví stav na 'menu', což uživatele vrátí do hlavního menu."""
         self.state = 'menu'
         self.main_menu()
     def start_background_music(self):
@@ -36,7 +37,7 @@ class MainMenu:
 
     def draw_menu(self):
         if self.state != 'menu':
-            return  # Zastavíme vykreslování, pokud nejsme ve stavu 'menu'
+            return
         self.screen.blit(self.background_image, (0, 0))
         mouse_pos = pygame.mouse.get_pos()
         title_text = self.title_font.render("Escape the Mazerooms", True, self.menu_colors['title'])
@@ -70,19 +71,19 @@ class MainMenu:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Levé tlačítko myši
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if return_button_rect and return_button_rect.collidepoint(pygame.mouse.get_pos()):
                         pygame.time.wait(300)
                         self.return_button_color = (255, 0, 0)
                         self.return_to_menu()
                         return
-            if self.state == 'menu':  # Kontrola, zda bylo stisknuto tlačítko 'Return'
+            if self.state == 'menu':
                 return
             self.screen.blit(self.tutorial_image, (0, 0))
             self.menu_rects.clear()
-            return_button_rect = self.draw_return_button()  # Vykreslení tlačítka a získání jeho pozice
+            return_button_rect = self.draw_return_button()
             pygame.display.flip()
-            self.return_button_color = (255, 255, 255)  # Reset barvy tlačítka "Return" na bílou po opuštění
+            self.return_button_color = (255, 255, 255)
 
     def show_magazine(self):
         self.state = 'magazine'
@@ -92,20 +93,20 @@ class MainMenu:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Levé tlačítko myši
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if return_button_rect and return_button_rect.collidepoint(pygame.mouse.get_pos()):
                         pygame.time.wait(300)
                         self.return_button_color = (255, 0, 0)
                         self.return_to_menu()
                         return
-            if self.state == 'menu':  # Kontrola, zda bylo stisknuto tlačítko 'Return'
+            if self.state == 'menu':
                 return
 
-            self.screen.blit(self.magazine_image, (0, 0))  # Zobrazit aktuální obrázek
+            self.screen.blit(self.magazine_image, (0, 0))
             self.menu_rects.clear()
-            return_button_rect = self.draw_return_button()  # Vykreslení tlačítka a získání jeho pozice
+            return_button_rect = self.draw_return_button()
             pygame.display.flip()
-            self.return_button_color = (255, 255, 255)  # Reset barvy tlačítka "Return" na bílou po opuštění
+            self.return_button_color = (255, 255, 255)
 
     def play_click_animation_and_proceed(self, index):
         text = self.font.render(self.menu_items[index], True, self.menu_colors['click'])
@@ -123,7 +124,7 @@ class MainMenu:
             pygame.mixer.music.stop()
             self.start_background_music()
             pygame.quit()
-            subprocess.run(["python", "level0.py"])
+            subprocess.run(["python", "intro.py"])
             sys.exit()
         elif self.menu_items[index] == 'Quit':
             pygame.quit()
@@ -135,7 +136,6 @@ class MainMenu:
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:

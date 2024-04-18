@@ -1,28 +1,19 @@
-import subprocess
-import pygame
-import sys
-import random
 from settings import *
 from main import Player
+import os
 
 class Level3End:
     def __init__(self):
+        os.environ['SDL_VIDEO_CENTERED'] = '1'  # Center the pygame window on the screen
         pygame.init()
         self.screen = screen
         self.player = Player(self.screen)
-
         slide_width = 100
         slide_height = 20
-        space_between_slides = 30  # Space between slides
-
-        # Calculate the center of the screen horizontally
+        space_between_slides = 30
         center_x = screen_width // 2
-
-        # Calculate the starting x position for the first slide to center them
         start_x = center_x - (1.5 * slide_width + space_between_slides)
-
-        # Calculate the y position for the slides to be close to the bottom of the screen
-        bottom_y = screen_height - slide_height - 20  # 20 pixels above the bottom edge of the screen
+        bottom_y = screen_height - slide_height - 20
 
         self.slides = {
             'red': pygame.Rect(start_x, bottom_y, slide_width, slide_height),
@@ -33,7 +24,7 @@ class Level3End:
         self.background_image = pygame.image.load('assets/maps/map_end.png').convert()
 
         self.running = True
-        pygame.mixer.music.load(r'assets/music/main_menu.mp3')
+        pygame.mixer.music.load(r'assets/music/end.mp3')
         pygame.mixer.music.play(-1)
         self.main_loop()
 
@@ -45,10 +36,18 @@ class Level3End:
 
     def handle_slide_collision(self, color):
         if color == 'red':
+            pygame.mixer.music.stop()
+            self.screen.fill((0, 0, 0))
+            pygame.display.flip()
+            pygame.time.wait(1000)
             pygame.quit()
             subprocess.run(["python", "level0.py"])
             sys.exit()
         elif color == 'blue':
+            pygame.mixer.music.stop()
+            self.screen.fill((0, 0, 0))
+            pygame.display.flip()
+            pygame.time.wait(1000)
             pygame.quit()
             subprocess.run(["python", "outro.py"])
             sys.exit()
@@ -60,13 +59,11 @@ class Level3End:
                     self.running = False
                 self.player.handle_event(event)
 
-            # Draw background image
             self.screen.blit(self.background_image, (0, 0))
 
             self.player.update()
             self.player.draw()
 
-            # Draw the slides
             for color, rect in self.slides.items():
                 pygame.draw.rect(self.screen, pygame.Color(color), rect)
 
