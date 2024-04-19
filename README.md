@@ -57,6 +57,7 @@ After Python is installed, you can install the remaining dependencies using `pip
 - Use SPACE key to interact with objects.
 - Solve puzzles and avoid traps to progress through levels.
 - Watch intro and outro videos to delve deeper into the game's lore.
+- REMEMBER! The game has no checkpoints, so dont die.
 
 ## License
 
