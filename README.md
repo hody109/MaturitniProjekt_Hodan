@@ -7,8 +7,9 @@ Welcome to the repository of "Escape The Mazerooms", a spine-chilling 2D horror 
 To play "Escape The Mazerooms", follow these simple steps:
 
 1. Download `EscapeTheBackrooms_SetupWizard.exe` from the releases section.
-2. Run the installer and follow the on-screen instructions to install the game.
-3. Once installed, navigate to the installation folder and run `EscapeTheMazerooms.exe` to start the game.
+2. Install the [dependencies](##Dependencies)
+3. Run the installer and follow the on-screen instructions to install the game.
+4. Once installed, navigate to the installation folder and run `EscapeTheMazerooms.exe` to start the game.
 
 ## Game Overview
 
