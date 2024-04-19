@@ -54,12 +54,9 @@ After Python is installed, you can install the remaining dependencies using `pip
 ## How to Play
 
 - Use the arrow keys to navigate through the mazes.
+- Use SPACE key to interact with objects.
 - Solve puzzles and avoid traps to progress through levels.
 - Watch intro and outro videos to delve deeper into the game's lore.
-
-## Contribution
-
-We welcome contributions to "Escape The Mazerooms". If you have a feature request, bug report, or a pull request, please feel free to do so here.
 
 ## License
 
