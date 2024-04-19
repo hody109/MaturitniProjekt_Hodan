@@ -63,7 +63,7 @@ We welcome contributions to "Escape The Mazerooms". If you have a feature reques
 
 ## License
 
-"Escape The Mazerooms" is released under the [MIT License](LICENSE).
+"Escape The Mazerooms" is released under the [License](LICENSE).
 
 ## Contact
 
