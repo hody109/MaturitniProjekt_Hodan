@@ -40,8 +40,6 @@ Before running the game, you need to have the following dependencies installed:
 - Random (usually comes with Python)
 - OS (usually comes with Python)
 
-The setup wizard should take care of installing these for you, but in case you need to install them manually, you can follow these steps:
-
 ### Installing Python
 
 Download Python 3.12 from the [official Python website](https://www.python.org/downloads/). During the installation, make sure to check the option "Add Python to PATH".
