@@ -3,12 +3,21 @@ from main import Player
 import os
 
 class level1:
+    """
+    Represents the second level of the game where players interact with balloons and a color sequence
+    displayed on a television. Correct interactions lead to level progression, while errors may trigger
+    jumpscares.
+    """
     def __init__(self):
+        """
+        Initializes the level with game settings and starts the main game loop.
+        """
         os.environ['SDL_VIDEO_CENTERED'] = '1'  # Center the pygame window on the screen
         pygame.init()
         self.screen = screen
         self.music_manager = MusicManager()
         self.jumpscare_manager = JumpscareManager(self.screen)
+        pygame.display.set_caption("Level 1 - Fun")
         self.player = Player(self.screen)
         self.balloons = self.spawn_balloons()
         self.color_sequence = ['blue', 'black', 'green', 'black', 'blue', 'green']
@@ -21,6 +30,9 @@ class level1:
         self.main_loop()
 
     def main_loop(self):
+        """
+        Main game loop for level1, handling events, updates, and rendering.
+        """
         while self.running:
             self.handle_events()
             self.update()
@@ -29,6 +41,9 @@ class level1:
         self.quit()
 
     def handle_events(self):
+        """
+        Handles user input events, including balloon popping and player movement.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -38,10 +53,16 @@ class level1:
             self.player.handle_event(event)
 
     def change_level(self):
+        """
+        Changes to the next level of the game upon successful completion.
+        """
         pygame.quit()
         subprocess.run(["python", "level2.py"])
 
     def pop_balloon(self):
+        """
+        Checks for collisions between player and balloons and handles game logic for balloon popping.
+        """
         player_rect = pygame.Rect(self.player.x, self.player.y, self.player.size, self.player.size)
         for balloon in self.balloons[:]:
             if player_rect.colliderect(balloon.rect):
@@ -66,14 +87,27 @@ class level1:
                     pygame.time.wait(1000)
                     self.jumpscare_manager.trigger_jumpscare()
     def spawn_balloons(self):
+        """
+        Creates a list of balloon objects at random positions on the screen.
+
+        :return: List of balloon objects.
+        :rtype: list
+        """
         colors = ['blue', 'green', 'black', 'dark-green', 'yellow', 'light-blue']
         return [Balloon(self.screen, random.choice(colors)) for _ in range(20)]
 
 
     def update(self):
+        """
+        Updates the game state, including player and game object movements.
+        """
         self.player.update()
+        self.player.is_moving()
 
     def render(self):
+        """
+        Renders all game elements to the screen.
+        """
         self.screen.blit(background1, (0, 0))
         self.television.draw()
 
@@ -83,15 +117,25 @@ class level1:
         pygame.display.flip()
 
     def quit(self):
-        pygame.quit()
-        sys.exit()
-
-    def quit(self):
+        """
+        Quits the game and exits the program.
+        """
         pygame.quit()
         sys.exit()
 
 class Balloon:
+    """
+    Represents a balloon in the game, which can be popped by the player.
+    """
     def __init__(self, screen, color):
+        """
+        Initializes a balloon with a color and random position.
+
+        :param screen: The game screen.
+        :param color: Color of the balloon.
+        :type screen: pygame.Surface
+        :type color: str
+                """
         self.screen = screen
         self.color = color
         original_image = pygame.image.load(f'assets/tiles/{color}_balloon.png').convert_alpha()
@@ -100,10 +144,24 @@ class Balloon:
                                                random.randint(self.image.get_height() // 2, screen_height - self.image.get_height() // 2)))
 
     def draw(self):
+        """
+        Draws the balloon on the game screen.
+        """
         self.screen.blit(self.image, self.rect)
 
 class Television:
+    """
+    Represents a television that displays the current target color for the player to interact with.
+    """
     def __init__(self, screen, initial_color):
+        """
+        Initializes the television with a starting color.
+
+        :param screen: The game screen where the television is displayed.
+        :param initial_color: The initial color displayed on the television.
+        :type screen: pygame.Surface
+        :type initial_color: str
+        """
         self.screen = screen
         self.color = initial_color
         self.width = 200
@@ -111,12 +169,28 @@ class Television:
         self.rect = pygame.Rect(screen_width // 2 - self.width // 2, 10, self.width, self.height)
 
     def update(self, new_color):
+        """
+        Updates the color displayed on the television.
+
+        :param new_color: The new color to display.
+        :type new_color: str
+        """
         self.color = new_color
 
     def draw(self):
+        """
+        Draws the television on the screen.
+        """
         pygame.draw.rect(self.screen, pygame.Color(self.color), self.rect)
+
 class MusicManager:
+    """
+    Manages background music and ambient sounds for the level.
+    """
     def __init__(self):
+        """
+        Initializes the music manager and starts playing level music.
+        """
         pygame.mixer.music.load(r'assets/music/level1.mp3')
         pygame.mixer.music.play(-1)
         pygame.mixer.music.set_volume(0.5)
@@ -127,7 +201,16 @@ class MusicManager:
 
 
 class JumpscareManager:
+    """
+    Manages jumpscares in response to player errors or specific game events.
+    """
     def __init__(self, screen):
+        """
+        Initializes the jumpscare manager with the game screen.
+
+        :param screen: The main game screen.
+        :type screen: pygame.Surface
+        """
         self.screen = screen
         self.jumpscare_sound = pygame.mixer.Sound(r'assets/sounds/jumpscare.mp3')
         self.jumpscare_image = pygame.image.load(r'assets/images/jumpscare.png').convert_alpha()
@@ -135,6 +218,9 @@ class JumpscareManager:
         self.jumpscare_triggered = False
 
     def trigger_jumpscare(self):
+        """
+        Triggers a jumpscare effect on the screen.
+        """
         self.screen.fill((0, 0, 0))
         self.jumpscare_sound.play()
         self.screen.blit(self.jumpscare_image, (0, 0))

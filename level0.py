@@ -7,7 +7,14 @@ from main import Player
 import os
 
 class level0:
+    """
+    Represents the first level of the game, handling the game mechanics like player movement,
+    collecting coins, encountering doors, and managing music and jum scares.
+    """
     def __init__(self):
+        """
+        Initializes the level with setting up the game environment and starting the game loop.
+        """
         os.environ['SDL_VIDEO_CENTERED'] = '1'  # Center the pygame window on the screen
         pygame.init()
         self.screen = screen
@@ -21,6 +28,7 @@ class level0:
         self.font = pygame.font.Font(font_path, font_size)
         self.door_spawned = False
         self.running = True
+        pygame.display.set_caption("Level 0 - The Lobby")
         self.start_time = pygame.time.get_ticks()
         self.show_message = True
         self.message_duration = 5000
@@ -32,9 +40,17 @@ class level0:
         pygame.time.Clock().tick(60)
 
     def generate_coin_position(self):
+        """
+            Generates a random position within the screen boundaries for a coin.
+            :return: A tuple containing the x and y coordinates of the coin.
+            :rtype: tuple
+            """
         return (random.randint(0, screen_width - coin_size), random.randint(0, screen_height - coin_size))
 
     def check_coin_collision(self):
+        """
+        Checks for collisions between the player and coins, updates coin collection and handles door spawning.
+        """
         player_rect = pygame.Rect(self.player.x, self.player.y, self.player.size, self.player.size)
         for coin in self.coins[:]:
             coin_rect = pygame.Rect(coin[0], coin[1], coin_size, coin_size)
@@ -47,6 +63,9 @@ class level0:
                 self.door.x, self.door.y = self.door.generate_random_door_position()
 
     def main_loop(self):
+        """
+        The main game loop handling events, updates, and rendering.
+        """
         while self.running:
             self.handle_events()
             self.update()
@@ -55,12 +74,18 @@ class level0:
         self.quit()
 
     def handle_events(self):
+        """
+        Handles user input events.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
             self.player.handle_event(event)
 
     def update(self):
+        """
+        Updates the game state, including checking collisions and managing time-dependent events.
+        """
         current_time = pygame.time.get_ticks()
         player_moving = self.player.is_moving()
         music_playing = pygame.mixer.music.get_busy()
@@ -80,6 +105,9 @@ class level0:
                 self.change_level()
 
     def render(self):
+        """
+        Renders the game frame, drawing all game elements on the screen.
+        """
         self.screen.blit(background0, (0, 0))
         self.player.draw()
         if self.door_spawned:
@@ -114,16 +142,28 @@ class level0:
         pygame.display.flip()
 
     def change_level(self):
+        """
+        Handles the transition to the next level of the game.
+        """
         pygame.quit()
         subprocess.run(["python", "level1.py"])
         sys.exit()
 
     def quit(self):
+        """
+        Quits the game and closes the application.
+        """
         pygame.quit()
         sys.exit()
 
 class MusicManager:
+    """
+    Manages background music and sound effects for the game.
+    """
     def __init__(self):
+        """
+        Initializes the music manager, loads music and sound effects.
+        """
         pygame.mixer.music.load(r'assets/music/music.mp3')
         pygame.mixer.music.play(-1)
         pygame.mixer.music.set_volume(0.5)
@@ -137,6 +177,9 @@ class MusicManager:
         self.music_playing = True
 
     def update(self):
+        """
+        Updates the state of music playback based on game events.
+        """
         current_time = pygame.time.get_ticks()
         if self.music_playing and current_time - self.last_stop_time > self.stop_interval:
             pygame.mixer.music.stop()
@@ -151,7 +194,15 @@ class MusicManager:
             self.stop_interval = random.randint(10000, 20000)
 
 class JumpscareManager:
+    """
+    Manages the triggering of jumpscares based on game conditions.
+    """
     def __init__(self, screen):
+        """
+        Initializes the jumpscare manager with references to the game screen.
+        :param screen: The main game screen.
+        :type screen: pygame.Surface
+        """
         self.screen = screen
         self.jumpscare_sound = pygame.mixer.Sound(r'assets/sounds/jumpscare.mp3')
         self.jumpscare_image = pygame.image.load(r'assets/images/jumpscare.png').convert_alpha()
@@ -160,6 +211,9 @@ class JumpscareManager:
         self.music_stopped_time = None
 
     def update(self, music_playing, player_moving, current_time):
+        """
+        Updates the jumpscare conditions.
+        """
         if not music_playing and self.music_stopped_time is None:
             self.music_stopped_time = current_time
         elif music_playing:
@@ -169,6 +223,9 @@ class JumpscareManager:
             self.trigger_jumpscare()
 
     def trigger_jumpscare(self):
+        """
+        Triggers a jumpscare event.
+        """
         self.screen.fill((0, 0, 0))
         self.jumpscare_sound.play()
         self.screen.blit(self.jumpscare_image, (0, 0))
@@ -180,7 +237,15 @@ class JumpscareManager:
         subprocess.run(["python", "menu.py"])
 
 class Door:
+    """
+    Represents a door in the game, handling its appearance and interaction.
+    """
     def __init__(self, screen):
+        """
+        Initializes the door with its position and loads its image.
+        :param screen: The main game screen.
+        :type screen: pygame.Surface
+        """
         self.door_spawn = pygame.mixer.Sound(r'assets/sounds/door_spawn.mp3')
         self.door_spawned = True
         self.screen = screen
@@ -189,6 +254,11 @@ class Door:
         self.image = pygame.transform.scale(self.image, (50, 100))
 
     def generate_random_door_position(self):
+        """
+        Generates a random position for the door based on predefined screen edges.
+        :return: A tuple of x and y coordinates for the door.
+        :rtype: tuple
+        """
         edge = random.choice(["top", "bottom", "left", "right"])
         self.door_spawn.play()
         if edge == "top":
@@ -201,6 +271,9 @@ class Door:
             return screen_width - 50, random.randint(0, screen_height - 100)
 
     def draw(self):
+        """
+        Draws the door on the screen at its current position.
+        """
         if self.door_spawned:
             self.screen.blit(self.image, (self.x, self.y))
 

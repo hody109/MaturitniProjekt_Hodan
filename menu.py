@@ -4,7 +4,17 @@ import subprocess
 import os
 
 class MainMenu:
+    """
+    A class that creates and manages the main menu for a game.
+
+    The main menu allows the player to choose from playing the game, viewing the tutorial,
+    accessing the magazine, or quitting the game. It handles user interactions and transitions
+    between different states based on user input.
+    """
     def __init__(self):
+        """
+        Initializes the main menu with a centered pygame window and loads all necessary resources.
+        """
         os.environ['SDL_VIDEO_CENTERED'] = '1'  # Center the pygame window on the screen
         pygame.init()
         self.screen_width, self.screen_height = 800, 450
@@ -29,13 +39,23 @@ class MainMenu:
         self.state = 'menu'
 
     def return_to_menu(self):
+        """
+        Resets the state to the main menu and displays it.
+        """
         self.state = 'menu'
         self.main_menu()
+
     def start_background_music(self):
+        """
+        Starts playing the background music for the main menu on loop.
+        """
         pygame.mixer.music.load(r'assets/music/main_menu.mp3')
         pygame.mixer.music.play(-1)
 
     def draw_menu(self):
+        """
+        Draws the main menu on the screen with interactive menu options.
+        """
         if self.state != 'menu':
             return
         self.screen.blit(self.background_image, (0, 0))
@@ -56,6 +76,9 @@ class MainMenu:
 
 
     def draw_return_button(self):
+        """
+        Draws and returns the rectangle for the return button on the menu screen.
+        """
         button_text = "Return"
         text_surf = self.font.render(button_text, True, self.return_button_color)
         text_rect = text_surf.get_rect(center=(self.screen_width / 2, self.screen_height - 50))
@@ -64,6 +87,9 @@ class MainMenu:
         return text_rect
 
     def show_tutorial(self):
+        """
+        Displays the tutorial screen and manages interactions within it.
+        """
         self.state = 'tutorial'
         running = True
         return_button_rect = self.draw_return_button()
@@ -86,6 +112,9 @@ class MainMenu:
             self.return_button_color = (255, 255, 255)
 
     def show_magazine(self):
+        """
+        Displays the magazine screen and manages interactions within it.
+        """
         self.state = 'magazine'
         running = True
         return_button_rect = self.draw_return_button()
@@ -109,6 +138,12 @@ class MainMenu:
             self.return_button_color = (255, 255, 255)
 
     def play_click_animation_and_proceed(self, index):
+        """
+        Handles menu item selection with a click animation and proceeds to the selected action.
+
+        :param index: The index of the selected menu item.
+        :type index: int
+        """
         text = self.font.render(self.menu_items[index], True, self.menu_colors['click'])
         self.screen.blit(text, self.menu_rects[index])
         pygame.display.flip()
@@ -131,6 +166,9 @@ class MainMenu:
             sys.exit()
 
     def main_menu(self):
+        """
+        Manages the main menu loop, handling events and updating the display.
+        """
         self.draw_menu()
         running = True
         while running:

@@ -4,7 +4,20 @@ from main import NPC
 import os
 
 class Computer:
+    """
+    Represents a computer within the game level that can interact with the player through a question-answer interface.
+    """
     def __init__(self, screen, x, y):
+        """
+        Initializes the computer with its position and loads the necessary image.
+
+        :param screen: The game screen where the computer will be displayed.
+        :param x: The x-coordinate of the computer's position.
+        :param y: The y-coordinate of the computer's position.
+        :type screen: pygame.Surface
+        :type x: int
+        :type y: int
+                """
         self.screen = screen
         self.x = x
         self.y = y
@@ -18,11 +31,19 @@ class Computer:
         self.show_input = False
         self.computer_sound = pygame.mixer.Sound(r'assets/sounds/computer.mp3')
 
-
     def draw(self):
+        """
+        Draws the computer on the screen.
+        """
         self.screen.blit(self.image, self.rect)
 
     def check_answer(self, answer):
+        """
+        Checks the player's answer and determines if it is correct, leading to level progression or other outcomes.
+
+        :param answer: The player's input answer.
+        :type answer: str
+        """
         if answer.lower() == "balloon":
             pygame.quit()
             subprocess.run(["python", "level3_end.py"])
@@ -30,7 +51,13 @@ class Computer:
 
 
 class level2:
+    """
+    The second level of the game featuring interactions with NPCs, a computer, and various other interactive objects.
+    """
     def __init__(self):
+        """
+        Initializes level 2, setting up the environment and starting the main game loop.
+        """
         os.environ['SDL_VIDEO_CENTERED'] = '1'  # Center the pygame window on the screen
         pygame.init()
         self.screen = screen
@@ -40,6 +67,7 @@ class level2:
         self.player = Player(self.screen)
         self.font = pygame.font.Font(font_path, font_size)
         self.door_spawned = False
+        pygame.display.set_caption("Level 2 - The Hub")
         self.running = True
         self.npc = NPC(self.screen, self.player)
         self.font = pygame.font.Font(font_path, font_size)
@@ -52,6 +80,9 @@ class level2:
         self.main_loop()
 
     def main_loop(self):
+        """
+        Main game loop that handles event processing, game state updates, and rendering.
+        """
         while self.running:
             self.handle_events()
             self.update()
@@ -60,6 +91,9 @@ class level2:
         self.quit()
 
     def handle_events(self):
+        """
+        Handles all player input events and triggers corresponding game logic.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -81,9 +115,12 @@ class level2:
                         self.computer.answer += event.unicode
 
     def update(self):
+        """
+        Updates the game state, including player, NPC, and other interactive elements.
+        """
         self.npc.update()
         self.player.update()
-        self.music_manager.update()
+        self.player.is_moving()
 
         if self.door_spawned:
             player_rect = pygame.Rect(self.player.x, self.player.y, self.player.size, self.player.size)
@@ -95,16 +132,26 @@ class level2:
             if not self.countdown_started:
                 self.countdown_started = True
                 self.countdown_start_ticks = pygame.time.get_ticks()
+                self.table.show_question = True
             self.table.play_sound()
 
         if self.countdown_started:
             elapsed_time = (pygame.time.get_ticks() - self.countdown_start_ticks) // 1000
-            self.countdown_time = max(0, 35 - elapsed_time)  # Aby čas nepoklesl pod nulu
+            self.countdown_time = max(0, 60 - elapsed_time)  # Aby čas nepoklesl pod nulu
 
         if self.countdown_time == 0:
             self.npc.expand_vision(2000)  # Rozšíření vision radius na 2000
 
+        if self.table.show_question:
+            riddle_text = "I can rise without wings, and make smiles bright as bay. With vibrant colors on display, catch me, before i float away"
+            text_surface = self.font.render(riddle_text, True, (255, 255, 255))
+            text_rect = text_surface.get_rect(center=(screen_width // 2, 50))
+            self.screen.blit(text_surface, text_rect)
+
     def render(self):
+        """
+        Renders all game elements to the screen.
+        """
         self.screen.blit(background2, (0, 0))
         self.player.draw()
         self.npc.draw()
@@ -123,7 +170,7 @@ class level2:
 
         current_time = pygame.time.get_ticks()
         if current_time - self.start_time <= 5000:  # Zobraz text, pokud uplynulo méně než 5 sekund
-            text_surf = self.font.render("I don't think I'm alone here...", True, (255, 255, 255))  # Bílý text
+            text_surf = self.font.render("I don't think I'm alone here...", True, (255, 255, 255))
             text_rect = text_surf.get_rect(center=(screen_width // 2, 20))
             self.screen.blit(text_surf, text_rect)
         if self.countdown_started:
@@ -141,38 +188,82 @@ class level2:
         pygame.display.flip()
 
     def change_level(self):
+        """
+        Handles the transition to the next level of the game.
+        """
         pygame.quit()
         subprocess.run(["python", "level3_end.py"])
         sys.exit()
 
     def quit(self):
+        """
+        Quits the game and exits the program.
+        """
         pygame.quit()
         sys.exit()
 
 class InteractiveObject:
+    """
+    Represents interactive objects within the game that can respond to player actions.
+    """
     def __init__(self, screen, x, y, width, height):
+        """
+        Initializes an interactive object with its position and dimensions.
+
+        :param screen: The game screen where the object will be displayed.
+        :param x: The x-coordinate of the object's position.
+        :param y: The y-coordinate of the object's position.
+        :param width: The width of the object.
+        :param height: The height of the object.
+        :type screen: pygame.Surface
+        :type x: int
+        :type y: int
+        :type width: int
+        :type height: int
+        """
         self.screen = screen
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
         self.image = pygame.image.load(r'assets/tiles/table.png').convert_alpha()
-        self.image = pygame.transform.scale(self.image, (125, 75))  # Změna velikosti na šířku 150 a výšku 100
+        self.image = pygame.transform.scale(self.image, (125, 75))
         self.rect = self.image.get_rect(center=(x, y))
-        self.interact_sound = pygame.mixer.Sound(r'assets/sounds/hadanka.mp3')
+        self.interact_sound = pygame.mixer.Sound(r'assets/sounds/hadanka.wav')
+        self.show_question = False
+        self.question_time = 0
 
     def draw(self):
+        """
+        Draws the interactive object on the screen.
+        """
         self.screen.blit(self.image, self.rect)
     def play_sound(self):
+        """
+        Plays a sound associated with interaction with the object.
+        """
         self.interact_sound.play()
         self.show_question = True
         self.question_time = pygame.time.get_ticks()
 
     def update(self):
+        """
+        Updates the state of InterActive object
+        """
         if self.show_question:
             current_time = pygame.time.get_ticks()
-            if current_time - self.question_time > 35000:
+            if current_time - self.question_time > 60000:
                 self.show_question = False
 
 
 class MusicManager:
+    """
+    Manages background music and sound effects for the level.
+    """
     def __init__(self):
+        """
+        Initializes the music manager and starts playing the background music.
+        """
         pygame.mixer.music.load(r'assets/music/level2.mp3')
         pygame.mixer.music.play(-1)
         pygame.mixer.music.set_volume(0.5)
@@ -181,11 +272,17 @@ class MusicManager:
         self.pickup_sound = pygame.mixer.Sound(r'assets/sounds/pickup.mp3')
         self.music_playing = True
 
-    def update(self):
-        current_time = pygame.time.get_ticks()
-
 class JumpscareManager:
+    """
+    Manages jumpscare triggers based on certain game conditions.
+    """
     def __init__(self, screen):
+        """
+        Initializes the jumpscare manager with references to the game screen.
+
+        :param screen: The main game screen.
+        :type screen: pygame.Surface
+        """
         self.screen = screen
         self.jumpscare_sound = pygame.mixer.Sound(r'assets/sounds/jumpscare.mp3')
         self.jumpscare_image = pygame.image.load(r'assets/images/jumpscare.png').convert_alpha()
@@ -193,23 +290,18 @@ class JumpscareManager:
         self.jumpscare_triggered = False
         self.music_stopped_time = None
 
-    def update(self, music_playing, current_time):
-        # Zaznamená čas, kdy hudba skončila
-        if not music_playing and self.music_stopped_time is None:
-            self.music_stopped_time = current_time
-        elif music_playing:
-            self.music_stopped_time = None  # Reset, pokud hudba znovu začne hrát
 
     def trigger_jumpscare(self):
+        """
+        Triggers a jumpscare effect visually and audibly.
+        """
         self.jumpscare_sound.play()
         self.screen.blit(self.jumpscare_image, (0, 0))
         pygame.display.flip()
-        pygame.time.wait(3000)  # Jumpscare je zobrazen 3 sekundy
-        pygame.quit()  # Ukončení Pygame
-
-        # Vrátit se do hlavního menu
-        subprocess.run(["python", "path_to_main_menu.py"])
-        sys.exit()  # Ukončení skriptu
+        pygame.time.wait(3000)
+        pygame.quit()
+        subprocess.run(["python", "menu.py"])
+        sys.exit()
 
 if __name__ == "__main__":
     level2()
